@@ -154,7 +154,71 @@ CREATE TABLE users(user_pid SERIAL PRIMARY KEY, user_name TEXT NOT NULL, user_em
 unixway2=> \d
 
 Просмотр списка талиц:
-unixway2=> \d users
-Просмотр содержимого таблицы:
+unixway1=> \d users
+unixway1=> \c unixway1
+
+#Добавим данные:
+INSERT INTO users(user_name, user_email,user_balance) VALUES ('Jerry Kinn','jkinn@gmail.com',1000);
+INSERT INTO users(user_name, user_email,user_balance) VALUES ('Adam Smith','asmith@gmail.com',1000);
+INSERT INTO users(user_name, user_email,user_balance) VALUES ('Billy Jonnes','bjonnes@gmail.com',1000);
+
+# Печать содержимого таблицы:
+SELECT * FROM users;
+
+unixway1=> \d 
+
+# Удалить талицу
+unixway1=> DROP TABLE users;
+
+# Активировать дополнение - использование типа данных uuid
+unixway1=> CREATE EXTENSION IF NOT EXITS "uuid-ossp";
+# Активировать расширение нужно только один раз для каждого раздела, где он будет использоваться
+
+# Создадим таблицу, используя UUID
+CREATE TABLE users(user_pid SERIAL PRIMARY KEY, user_id UUID NOT NULL DEFAULT uuid_generate_v4(), user_name TEXT NOT NULL, user_email TEXT NOT NULL, user_balance INTEGER NOT NULL, user_registration TIMESTAMP NOT NULL DEFAULT now());
+
+# Демонстрация работы функции uuid_generate_v4()
+SELECT uuid_generate_v4();
+
+#Добавим данные:
+INSERT INTO users(user_name, user_email,user_balance) VALUES ('Jerry Kinn','jkinn@gmail.com',1000);
+INSERT INTO users(user_name, user_email,user_balance) VALUES ('Adam Smith','asmith@gmail.com',1000);
+INSERT INTO users(user_name, user_email,user_balance) VALUES ('Billy Jonnes','bjonnes@gmail.com',1000);
+
+# Печать содержимого таблицы:
+SELECT * FROM users;
+
+# Попытка добавить неполные данные:
+INSERT INTO users(user_name,user_email) VALUES ('Martha Longdale','mlngdale@gmail.com');
+
+# Модификация базы данных
+ALTER TABLE users ALTER COLUMN user_balance SET DEFAULT 0;
 
 
+# Модификация базы данных
+ALTER TABLE users ADD CHECK(user_balance >= 0);
+
+# Модификация базы данных
+ALTER TABLE users ADD CHECK(length(user_name) <= 100);
+ALTER TABLE users ADD CHECK(length(user_email) <= 100);
+
+# Попытка добавить неполные данные:
+INSERT INTO users(user_name,user_email) VALUES ('Niels Bourre','nbourre@gmail.com', -100);
+
+# Модификация базы данных
+ALTER TABLE users ADD COLUMN user_enabled BOOLEAN NOT NULL DEFAULT true;
+
+
+# Модификация базы данных. Удалим колонку user_enabled
+ALTER TABLE users DROP COLUMN user_enabled;
+
+# Обновить данные пользователя
+UPDATE users SET user_balance = user_balance + 100 WHERE user_pid = 2;
+UPDATE users SET user_balance = user_balance + 100 WHERE user_id = '691967ea-5648-4529-8d70-1a0843683c3d';
+UPDATE users SET user_balance = user_balance + 10;
+UPDATE users SET user_balance = user_balance - 100;
+UPDATE users SET user_balance = user_balance + 100 WHERE user_balance < 100;
+UPDATE users SET user_balance = 0;
+
+# Удалить все строки таблицы users
+DELETE FROM users;
